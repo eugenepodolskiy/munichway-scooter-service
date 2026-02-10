@@ -1,0 +1,10 @@
+services:
+  db:                          # Имя сервиса (как мы его называем)
+    image: postgres:15         # Откуда Докеру скачать базу (версия 15)
+    container_name: scooter-db # Как будет называться "коробка" в Докере
+    environment:
+      - POSTGRES_USER=user     # Твой логин
+      - POSTGRES_PASSWORD=pass # Твой пароль
+      - POSTGRES_DB=munichway  # Имя самой базы данных
+    ports:
+      - "5432:5432"            # "Снаружи:Внутри". Открываем дверь для Java
