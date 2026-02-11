@@ -24,7 +24,7 @@ public class ScooterController {
 
 
     @PostMapping
-    public Scooter createScooter(@RequestBody Scooter scooter) {
+    public Scooter createScooter(@jakarta.validation.Valid @RequestBody Scooter scooter) {
         return scooterService.save(scooter);
     }
 
