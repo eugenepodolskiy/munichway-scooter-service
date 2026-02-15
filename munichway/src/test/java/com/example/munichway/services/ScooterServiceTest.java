@@ -67,14 +67,23 @@ class ScooterServiceTest {
         Scooter rentedScooter = new Scooter();
         rentedScooter.setId(3L);
         rentedScooter.setAvailable(false);
+        rentedScooter.setLocation("Marienplatz");
+        rentedScooter.setBatteryLevel(80);
+
+        com.example.munichway.dto.ReturnRequest request = new com.example.munichway.dto.ReturnRequest();
+        request.setNewLocation("Olympiapark");
+        request.setNewBatteryLevel(45);
 
 
         when(scooterRepository.findById(3L)).thenReturn(Optional.of(rentedScooter));
         when(scooterRepository.save(any(Scooter.class))).thenReturn(rentedScooter);
 
-        scooterService.returnScooter(3L);
+        scooterService.returnScooter(3L, request);
 
-        assertTrue(rentedScooter.getAvailable(), "Scooter should be available");
+        assertTrue(rentedScooter.getAvailable(), "Scooter should be available again");
+        org.junit.jupiter.api.Assertions.assertEquals("Olympiapark", rentedScooter.getLocation(), "Location must be updated");
+        org.junit.jupiter.api.Assertions.assertEquals(45, rentedScooter.getBatteryLevel(), "Battery level must be updated");
+
         verify(scooterRepository, times(1)).save(rentedScooter);
     }
 }

@@ -51,7 +51,7 @@ public class ScooterService {
         return scooterRepository.save(scooter);
     }
 
-    public Scooter returnScooter(Long id) {
+    public Scooter returnScooter(Long id, com.example.munichway.dto.ReturnRequest request) {
 
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No scooter with this id"));
@@ -64,8 +64,15 @@ public class ScooterService {
 
         scooter.setAvailable(true);
 
+        scooter.setLocation(request.getNewLocation());
+
+        scooter.setBatteryLevel(request.getNewBatteryLevel());
 
         return scooterRepository.save(scooter);
+    }
+
+    public List<Scooter> getAvailableScooters() {
+        return scooterRepository.findByIsAvailableTrue();
     }
 
     private void ResponseStatusException(HttpStatus httpStatus, String itIsAvailable) {
