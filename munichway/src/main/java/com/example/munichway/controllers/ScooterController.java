@@ -35,8 +35,15 @@ public class ScooterController {
 
 
     @PostMapping("/{id}/return")
-    public Scooter returnScooter(@PathVariable Long id) {
-        return scooterService.returnScooter(id);
+    public Scooter returnScooter(@PathVariable Long id,
+                                 @jakarta.validation.Valid @RequestBody com.example.munichway.dto.ReturnRequest request) {
+
+        return scooterService.returnScooter(id, request);
+    }
+
+    @GetMapping("/available")
+    public List<Scooter> getAvailableScooters() {
+        return scooterService.getAvailableScooters();
     }
 
 }
