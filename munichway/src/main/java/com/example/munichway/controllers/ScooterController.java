@@ -29,8 +29,9 @@ public class ScooterController {
     }
 
     @PostMapping("/{id}/rent")
-    public Scooter rentScooter(@PathVariable Long id) {
-        return scooterService.rentScooter(id);
+    public Scooter rentScooter(@PathVariable Long id,
+                               @org.springframework.web.bind.annotation.RequestParam Long userId) {
+        return scooterService.rentScooter(id, userId);
     }
 
 
