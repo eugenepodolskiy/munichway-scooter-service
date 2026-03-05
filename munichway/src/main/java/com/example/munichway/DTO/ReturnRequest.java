@@ -1,4 +1,4 @@
-package com.example.munichway.dto;
+package com.example.munichway.DTO;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

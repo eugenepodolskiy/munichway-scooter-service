@@ -73,7 +73,7 @@ public class ScooterService {
         return scooterRepository.save(scooter);
     }
 
-    public Scooter returnScooter(Long id, com.example.munichway.dto.ReturnRequest request) {
+    public Scooter returnScooter(Long id, com.example.munichway.DTO.ReturnRequest request) {
 
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No scooter with this id"));
