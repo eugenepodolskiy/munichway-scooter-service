@@ -2,6 +2,9 @@ package com.example.munichway.controllers;
 
 import com.example.munichway.models.Scooter;
 import com.example.munichway.services.ScooterService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +21,10 @@ public class ScooterController {
 
 
     @GetMapping
-    public List<Scooter> getAllScooters() {
-        return scooterService.findAll();
+    public Page<Scooter> getAllScooters(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return scooterService.findAll(pageable);
     }
 
 
@@ -37,7 +42,7 @@ public class ScooterController {
 
     @PostMapping("/{id}/return")
     public Scooter returnScooter(@PathVariable Long id,
-                                 @jakarta.validation.Valid @RequestBody com.example.munichway.dto.ReturnRequest request) {
+                                 @jakarta.validation.Valid @RequestBody com.example.munichway.DTO.ReturnRequest request) {
 
         return scooterService.returnScooter(id, request);
     }

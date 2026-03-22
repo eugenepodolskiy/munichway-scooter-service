@@ -2,6 +2,8 @@ package com.example.munichway.models;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -15,6 +17,9 @@ public class User {
     private String email;
 
     private double balance = 100;
+
+    @OneToMany(mappedBy = "user")
+    private List<Trip> trips;
 
     public User(){
     }
@@ -49,5 +54,13 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public List<Trip> getTrips() {
+        return trips;
+    }
+
+    public void setTrips(List<Trip> trips) {
+        this.trips = trips;
     }
 }

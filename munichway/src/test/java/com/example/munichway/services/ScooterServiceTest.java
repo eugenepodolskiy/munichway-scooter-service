@@ -97,7 +97,7 @@ class ScooterServiceTest {
         activeTrip.setUser(testUser);
         activeTrip.setStartTime(LocalDateTime.now().minusMinutes(10));
 
-        com.example.munichway.dto.ReturnRequest request = new com.example.munichway.dto.ReturnRequest();
+        com.example.munichway.DTO.ReturnRequest request = new com.example.munichway.DTO.ReturnRequest();
         request.setNewLocation("Olympiapark");
         request.setNewBatteryLevel(45);
 

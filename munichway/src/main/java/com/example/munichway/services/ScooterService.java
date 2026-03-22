@@ -1,6 +1,7 @@
 package com.example.munichway.services;
 
 
+import com.example.munichway.exceptions.InsufficientFundsException;
 import com.example.munichway.models.Scooter;
 import com.example.munichway.models.Trip;
 import com.example.munichway.models.User;
@@ -10,6 +11,8 @@ import com.example.munichway.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,9 +31,9 @@ public class ScooterService {
         this.userRepository = userRepository;
     }
 
-    public List<Scooter> findAll() {
+    public Page<Scooter> findAll(Pageable pageable) {
 
-        return scooterRepository.findAll();
+        return scooterRepository.findAll(pageable);
     }
 
     public Scooter save(Scooter scooter) {
@@ -47,6 +50,10 @@ public class ScooterService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getBalance() < 5.0) {
+            throw new InsufficientFundsException("Not enough money to rent a scooter. Minimum required: 5.0");
+        }
 
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No scooter with this id"));
