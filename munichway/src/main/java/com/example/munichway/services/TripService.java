@@ -1,6 +1,7 @@
 package com.example.munichway.services;
 
 import com.example.munichway.DTO.TripResponse;
+import com.example.munichway.mappers.TripMapper;
 import com.example.munichway.models.User;
 import com.example.munichway.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -13,25 +14,19 @@ import java.util.List;
 public class TripService {
 
     private final UserRepository userRepository;
+    private final TripMapper tripMapper;
 
-    public TripService(UserRepository userRepository) {
+    public TripService(UserRepository userRepository, TripMapper tripMapper) {
         this.userRepository = userRepository;
+        this.tripMapper = tripMapper;
     }
 
     public List<TripResponse> getUserTrips(Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-
-        return user.getTrips().stream().map(trip -> {
-            TripResponse dto = new TripResponse();
-            dto.setTripId(trip.getId());
-            dto.setScooterModel(trip.getScooter().getModelName());
-            dto.setStartTime(trip.getStartTime());
-            dto.setEndTime(trip.getEndTime());
-            dto.setTotalCost(trip.getTotalCost());
-            return dto;
-        }).toList();
+        return user.getTrips().stream()
+                .map(tripMapper::toDto)
+                .toList();
     }
 }

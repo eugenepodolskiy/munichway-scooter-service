@@ -33,4 +33,10 @@ public class UserController {
     public List<TripResponse> getUserTrips(@PathVariable Long id) {
         return tripService.getUserTrips(id);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // Правильный статус для успешного удаления
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
 }

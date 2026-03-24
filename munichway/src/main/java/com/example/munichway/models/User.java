@@ -1,11 +1,13 @@
 package com.example.munichway.models;
-
 import jakarta.persistence.*;
-
 import java.util.List;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "users")
+@SQLDelete(sql = "UPDATE users SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class User {
 
     @Id
@@ -20,6 +22,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Trip> trips;
+
+    private boolean deleted = false;
 
     public User(){
     }
@@ -63,4 +67,8 @@ public class User {
     public void setTrips(List<Trip> trips) {
         this.trips = trips;
     }
+
+    public boolean isDeleted() { return deleted; }
+
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }
