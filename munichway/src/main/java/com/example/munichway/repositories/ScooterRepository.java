@@ -10,4 +10,5 @@ import java.util.List;
 public interface ScooterRepository extends JpaRepository<Scooter, Long> {
 
     List<Scooter> findByIsAvailableTrue();
+    List<Scooter> findByIsAvailableTrueAndBatteryLevelLessThan(Integer batteryLevel);
 }

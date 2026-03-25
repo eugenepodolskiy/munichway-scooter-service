@@ -23,6 +23,15 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
+    public User topUpBalance(Long userId, Double amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setBalance(user.getBalance() + amount);
+
+        return userRepository.save(user);
+    }
+
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");

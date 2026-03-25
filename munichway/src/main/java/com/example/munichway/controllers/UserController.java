@@ -39,4 +39,11 @@ public class UserController {
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
+
+    @PostMapping("/{id}/top-up")
+    public User topUpBalance(
+            @PathVariable Long id,
+            @Valid @RequestBody com.example.munichway.DTO.TopUpRequest request) {
+        return userService.topUpBalance(id, request.getAmount());
+    }
 }
