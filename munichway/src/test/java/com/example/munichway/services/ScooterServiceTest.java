@@ -1,5 +1,6 @@
 package com.example.munichway.services;
 
+import com.example.munichway.exceptions.InsufficientFundsException;
 import com.example.munichway.models.Scooter;
 import com.example.munichway.models.Trip;
 import com.example.munichway.models.User;
@@ -118,5 +119,26 @@ class ScooterServiceTest {
         verify(tripRepository, times(1)).save(activeTrip);
         verify(userRepository, times(1)).save(testUser);
         verify(scooterRepository, times(1)).save(rentedScooter);
+    }
+
+    @Test
+    void rentScooterShouldThrowExceptionWhenBalanceIsTooLow() {
+
+        Long userId = 1L;
+        Long scooterId = 10L;
+
+        User poorUser = new User();
+        poorUser.setId(userId);
+        poorUser.setBalance(3.0);
+
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(poorUser));
+
+
+        InsufficientFundsException exception = assertThrows(InsufficientFundsException.class, () -> {
+            scooterService.rentScooter(scooterId, userId);
+        });
+
+        assertEquals("Not enough money to rent a scooter. Minimum required: 5.0", exception.getMessage());
     }
 }

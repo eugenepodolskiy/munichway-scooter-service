@@ -121,6 +121,16 @@ public class ScooterService {
         return scooterRepository.save(scooter);
     }
 
+    public Scooter addScooter(com.example.munichway.DTO.ScooterCreateRequest request) {
+        Scooter scooter = new Scooter();
+        scooter.setModelName(request.getModelName());
+        scooter.setLocation(request.getLocation());
+        scooter.setBatteryLevel(request.getBatteryLevel());
+        scooter.setAvailable(true);
+
+        return scooterRepository.save(scooter);
+    }
+
     public List<Scooter> getAvailableScooters() {
         return scooterRepository.findByIsAvailableTrue();
     }
