@@ -83,28 +83,25 @@ public class ScooterService {
     public Scooter returnScooter(Long id, com.example.munichway.DTO.ReturnRequest request) {
 
         Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No scooter with this id"));
-
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "No scooter with this id"));
 
         if (scooter.getAvailable()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "It is available");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "It is available");
         }
 
-
         scooter.setAvailable(true);
-
         scooter.setLocation(request.getNewLocation());
-
         scooter.setBatteryLevel(request.getNewBatteryLevel());
 
         Trip activeTrip = tripRepository.findByScooterIdAndEndTimeIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Active trip not found for this scooter"));
 
-        activeTrip.setEndTime(LocalDateTime.now());
+        activeTrip.setEndTime(java.time.LocalDateTime.now());
 
         long minutes = java.time.Duration.between(activeTrip.getStartTime(), activeTrip.getEndTime()).toMinutes();
 
-        double cost = 1.0 + minutes*0.1;
+        double rawCost = 1.0 + (minutes * 0.1);
+        double cost = Math.round(rawCost * 100.0) / 100.0;
 
         activeTrip.setTotalCost(cost);
 
@@ -113,9 +110,10 @@ public class ScooterService {
             throw new RuntimeException("This trip has no user attached!");
         }
 
-        user.setBalance(user.getBalance() - cost);
-        userRepository.save(user);
+        double newBalance = Math.round((user.getBalance() - cost) * 100.0) / 100.0;
+        user.setBalance(newBalance);
 
+        userRepository.save(user);
         tripRepository.save(activeTrip);
 
         return scooterRepository.save(scooter);

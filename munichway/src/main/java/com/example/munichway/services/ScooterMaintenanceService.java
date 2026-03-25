@@ -33,9 +33,9 @@ public class ScooterMaintenanceService {
         for (Scooter scooter : scootersToCharge) {
             int newBattery = Math.min(scooter.getBatteryLevel() + 20, 100);
             scooter.setBatteryLevel(newBattery);
+            log.info("Maintenance complete. Scooters updated.");
         }
 
         scooterRepository.saveAll(scootersToCharge);
-        log.info("Maintenance complete. Scooters updated.");
     }
 }
