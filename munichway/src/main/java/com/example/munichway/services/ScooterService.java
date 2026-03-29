@@ -10,6 +10,7 @@ import com.example.munichway.repositories.TripRepository;
 import com.example.munichway.repositories.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +47,7 @@ public class ScooterService {
         return scooterRepository.save(scooter);
     }
 
+    @Transactional
     public Scooter rentScooter(Long id, Long userId) {
 
         User user = userRepository.findById(userId)
@@ -55,8 +57,8 @@ public class ScooterService {
             throw new InsufficientFundsException("Not enough money to rent a scooter. Minimum required: 5.0");
         }
 
-        Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No scooter with this id"));
+        Scooter scooter = scooterRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scooter not found"));
 
 
         if (!scooter.getAvailable()) {
