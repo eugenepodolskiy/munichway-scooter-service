@@ -1,14 +1,25 @@
 package com.example.munichway.models;
 import jakarta.persistence.*;
+
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "users")
 @SQLDelete(sql = "UPDATE users SET deleted = true WHERE id=?")
 @SQLRestriction("deleted = false")
-public class User {
+@Getter
+@Setter
+public class User implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,50 +36,44 @@ public class User {
 
     private boolean deleted = false;
 
+    @Column //(nullable = false)
+    private String password;
+
+    @Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column //(nullable = false)
+    private com.example.munichway.enums.Role role = com.example.munichway.enums.Role.USER;
+
     public User(){
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
+    @Override
+    public String getUsername() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
     }
 
-    public double getBalance() {
-        return balance;
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public boolean isEnabled() {
+        return !deleted;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public List<Trip> getTrips() {
-        return trips;
-    }
-
-    public void setTrips(List<Trip> trips) {
-        this.trips = trips;
-    }
-
-    public boolean isDeleted() { return deleted; }
-
-    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 }

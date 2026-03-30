@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +23,6 @@ public class ScooterController {
         this.scooterService = scooterService;
     }
 
-
     @GetMapping
     public Page<Scooter> getAllScooters(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "10") int size) {
@@ -29,18 +30,17 @@ public class ScooterController {
         return scooterService.findAll(pageable);
     }
 
-    @PostMapping("/{id}/rent")
-    public Scooter rentScooter(@PathVariable Long id,
-                               @org.springframework.web.bind.annotation.RequestParam Long userId) {
-        return scooterService.rentScooter(id, userId);
+    @PostMapping("/{scooterId}/rent")
+    public Scooter rentScooter(@PathVariable Long scooterId,
+                               @AuthenticationPrincipal UserDetails userDetails) {
+        return scooterService.rentScooter(scooterId, userDetails.getUsername());
     }
 
-
-    @PostMapping("/{id}/return")
-    public Scooter returnScooter(@PathVariable Long id,
-                                 @jakarta.validation.Valid @RequestBody com.example.munichway.DTO.ReturnRequest request) {
-
-        return scooterService.returnScooter(id, request);
+    @PostMapping("/{scooterId}/return")
+    public Scooter returnScooter(@PathVariable Long scooterId,
+                                 @Valid @RequestBody com.example.munichway.DTO.ReturnRequest request,
+                                 @AuthenticationPrincipal UserDetails userDetails) {
+        return scooterService.returnScooter(scooterId, request, userDetails.getUsername());
     }
 
     @GetMapping("/available")
@@ -53,5 +53,4 @@ public class ScooterController {
     public Scooter addScooter(@Valid @RequestBody com.example.munichway.DTO.ScooterCreateRequest request) {
         return scooterService.addScooter(request);
     }
-
 }

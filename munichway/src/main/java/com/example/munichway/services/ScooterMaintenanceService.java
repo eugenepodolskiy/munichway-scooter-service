@@ -21,7 +21,7 @@ public class ScooterMaintenanceService {
     public void rechargeAvailableScooters() {
         log.info("System check: looking for scooters with battery < 50%...");
 
-        List<Scooter> scootersToCharge = scooterRepository.findByIsAvailableTrueAndBatteryLevelLessThan(50);
+        List<Scooter> scootersToCharge = scooterRepository.findByAvailableTrueAndBatteryLevelLessThan(50);
 
         if (scootersToCharge.isEmpty()) {
             log.info("All available scooters are charged. Going back to sleep.");

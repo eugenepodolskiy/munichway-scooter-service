@@ -1,6 +1,5 @@
 package com.example.munichway.services;
 
-
 import com.example.munichway.exceptions.InsufficientFundsException;
 import com.example.munichway.models.Scooter;
 import com.example.munichway.models.Trip;
@@ -16,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -25,7 +25,6 @@ public class ScooterService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
 
-
     public ScooterService(ScooterRepository scooterRepository, TripRepository tripRepository, UserRepository userRepository) {
         this.scooterRepository = scooterRepository;
         this.tripRepository = tripRepository;
@@ -33,92 +32,80 @@ public class ScooterService {
     }
 
     public Page<Scooter> findAll(Pageable pageable) {
-
         return scooterRepository.findAll(pageable);
     }
 
-    public Scooter save(Scooter scooter) {
-
-
-        if (scooter.getBatteryLevel() < 0 || scooter.getBatteryLevel() > 100) {
-            throw new IllegalArgumentException("Battery level must be between 0 and 100");
-        }
-
-        return scooterRepository.save(scooter);
-    }
-
     @Transactional
-    public Scooter rentScooter(Long id, Long userId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public Scooter rentScooter(Long id, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (user.getBalance() < 5.0) {
-            throw new InsufficientFundsException("Not enough money to rent a scooter. Minimum required: 5.0");
+            throw new InsufficientFundsException("Minimum 5.0 required to start rental");
         }
 
         Scooter scooter = scooterRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scooter not found"));
 
-
-        if (!scooter.getAvailable()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "It's already rented");
+        if (!scooter.isAvailable()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Scooter is already rented");
         }
-
 
         scooter.setAvailable(false);
 
         Trip trip = new Trip();
-
         trip.setUser(user);
-
+        trip.setScooter(scooter);
         trip.setStartTime(LocalDateTime.now());
 
-        trip.setScooter(scooter);
-
         tripRepository.save(trip);
-
-
         return scooterRepository.save(scooter);
     }
 
-    public Scooter returnScooter(Long id, com.example.munichway.DTO.ReturnRequest request) {
+
+    @Transactional
+    public Scooter returnScooter(Long id, com.example.munichway.DTO.ReturnRequest request, String email) {
 
         Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "No scooter with this id"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Scooter not found"));
 
-        if (scooter.getAvailable()) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "It is available");
+        if (scooter.isAvailable()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Scooter is already at the parking");
         }
+
+
+        Trip activeTrip = tripRepository.findByScooterIdAndEndTimeIsNull(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active trip not found"));
+
+
+        if (!activeTrip.getUser().getEmail().equals(email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot return a scooter you didn't rent!");
+        }
+
+
+        activeTrip.setEndTime(LocalDateTime.now());
+        long minutes = Duration.between(activeTrip.getStartTime(), activeTrip.getEndTime()).toMinutes();
+
+
+        double cost = Math.round((1.0 + (minutes * 0.1)) * 100.0) / 100.0;
+        activeTrip.setTotalCost(cost);
+
+
+        User user = activeTrip.getUser();
+        user.setBalance(Math.round((user.getBalance() - cost) * 100.0) / 100.0);
+
 
         scooter.setAvailable(true);
         scooter.setLocation(request.getNewLocation());
         scooter.setBatteryLevel(request.getNewBatteryLevel());
 
-        Trip activeTrip = tripRepository.findByScooterIdAndEndTimeIsNull(id)
-                .orElseThrow(() -> new RuntimeException("Active trip not found for this scooter"));
-
-        activeTrip.setEndTime(java.time.LocalDateTime.now());
-
-        long minutes = java.time.Duration.between(activeTrip.getStartTime(), activeTrip.getEndTime()).toMinutes();
-
-        double rawCost = 1.0 + (minutes * 0.1);
-        double cost = Math.round(rawCost * 100.0) / 100.0;
-
-        activeTrip.setTotalCost(cost);
-
-        User user = activeTrip.getUser();
-        if (user == null) {
-            throw new RuntimeException("This trip has no user attached!");
-        }
-
-        double newBalance = Math.round((user.getBalance() - cost) * 100.0) / 100.0;
-        user.setBalance(newBalance);
-
         userRepository.save(user);
         tripRepository.save(activeTrip);
-
         return scooterRepository.save(scooter);
+    }
+
+    public List<Scooter> getAvailableScooters() {
+        return scooterRepository.findByAvailableTrue();
     }
 
     public Scooter addScooter(com.example.munichway.DTO.ScooterCreateRequest request) {
@@ -127,13 +114,6 @@ public class ScooterService {
         scooter.setLocation(request.getLocation());
         scooter.setBatteryLevel(request.getBatteryLevel());
         scooter.setAvailable(true);
-
         return scooterRepository.save(scooter);
     }
-
-    public List<Scooter> getAvailableScooters() {
-        return scooterRepository.findByIsAvailableTrue();
-    }
-
-
 }

@@ -52,7 +52,7 @@ class ScooterServiceTest {
 
         Scooter rentedScooter = scooterService.rentScooter(1L, 1L);
 
-        assertFalse(rentedScooter.getAvailable(), "Scooter is rented now");
+        assertFalse(rentedScooter.isAvailable(), "Scooter is rented now");
         verify(tripRepository, times(1)).save(any(Trip.class));
         verify(scooterRepository, times(1)).save(testScooter);
     }
@@ -110,7 +110,7 @@ class ScooterServiceTest {
 
         scooterService.returnScooter(3L, request);
 
-        assertTrue(rentedScooter.getAvailable(), "Scooter should be available again");
+        assertTrue(rentedScooter.isAvailable(), "Scooter should be available again");
         org.junit.jupiter.api.Assertions.assertEquals("Olympiapark", rentedScooter.getLocation(), "Location must be updated");
         org.junit.jupiter.api.Assertions.assertEquals(45, rentedScooter.getBatteryLevel(), "Battery level must be updated");
 

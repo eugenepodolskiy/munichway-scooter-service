@@ -13,3 +13,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+security:
+  jwt:
+    secret: "c8129e7d10e41172353610925c883a88d39567cb6636d7b36d709dbece32c327"

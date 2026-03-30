@@ -13,8 +13,8 @@ import java.util.List;
 @Repository
 public interface ScooterRepository extends JpaRepository<Scooter, Long> {
 
-    List<Scooter> findByIsAvailableTrue();
-    List<Scooter> findByIsAvailableTrueAndBatteryLevelLessThan(Integer batteryLevel);
+    List<Scooter> findByAvailableTrue();
+    List<Scooter> findByAvailableTrueAndBatteryLevelLessThan(Integer batteryLevel);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Scooter s WHERE s.id = :id")
