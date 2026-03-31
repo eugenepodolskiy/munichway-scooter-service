@@ -25,22 +25,26 @@ public class User implements UserDetails{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
     private double balance = 100;
 
     @OneToMany(mappedBy = "user")
     private List<Trip> trips;
 
+    @Column(nullable = false)
     private boolean deleted = false;
 
-    @Column //(nullable = false)
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(jakarta.persistence.EnumType.STRING)
-    @Column //(nullable = false)
+    @Column(nullable = false)
     private com.example.munichway.enums.Role role = com.example.munichway.enums.Role.USER;
 
     public User(){

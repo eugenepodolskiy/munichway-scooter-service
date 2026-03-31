@@ -12,6 +12,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name = "scooters")
 public class Scooter {
 
     @Id
@@ -23,9 +24,10 @@ public class Scooter {
 
     @Min(value = 0, message = "Battery level cannot be less than 0")
     @Max(value = 100, message = "Battery level cannot be more than 100")
+    @Column(nullable = false)
     private Integer batteryLevel;
 
-    @Column(name = "is_available")
+    @Column(name = "available", nullable = false)
     private boolean available;
 
     @NotBlank(message = "Location is required")

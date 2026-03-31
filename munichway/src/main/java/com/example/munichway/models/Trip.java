@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(name = "trips")
 public class Trip {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDateTime startTime;
 
     private LocalDateTime endTime;
