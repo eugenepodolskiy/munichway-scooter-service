@@ -23,3 +23,9 @@ spring:
 security:
   jwt:
     secret: "c8129e7d10e41172353610925c883a88d39567cb6636d7b36d709dbece32c327"
+
+billing:
+  unlock-fee: 1.0
+  minute-rate: 0.1
+  min-balance-to-rent: 5.0
+  max-debt-limit: -5.0
