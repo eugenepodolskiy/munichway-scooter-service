@@ -19,4 +19,7 @@ public interface ScooterRepository extends JpaRepository<Scooter, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Scooter s WHERE s.id = :id")
     java.util.Optional<Scooter> findByIdWithLock(@Param("id") Long id);
+
+    @Query(value = "SELECT * FROM scooters WHERE available = true AND deleted = false AND ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 500)", nativeQuery = true)
+    List<Scooter> findAvailableNearLocation(@Param("lat") double lat, @Param("lon") double lon);
 }

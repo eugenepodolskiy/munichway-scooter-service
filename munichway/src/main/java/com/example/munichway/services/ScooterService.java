@@ -14,7 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -100,23 +103,28 @@ public class ScooterService {
         activeTrip.setTotalCost(cost);
 
         scooter.setAvailable(true);
-        scooter.setLocation(request.getNewLocation());
+        scooter.setLocation(createPoint(request.getNewLatitude(), request.getNewLongitude()));
         scooter.setBatteryLevel(request.getNewBatteryLevel());
 
         tripRepository.save(activeTrip);
         return scooterRepository.save(scooter);
     }
 
-    public List<Scooter> getAvailableScooters() {
-        return scooterRepository.findByAvailableTrue();
+    public List<Scooter> getAvailableScootersNear(double lat, double lon) {
+        return scooterRepository.findAvailableNearLocation(lat, lon);
     }
 
     public Scooter addScooter(com.example.munichway.DTO.ScooterCreateRequest request) {
         Scooter scooter = new Scooter();
         scooter.setModelName(request.getModelName());
-        scooter.setLocation(request.getLocation());
+        scooter.setLocation(createPoint(request.getLatitude(), request.getLongitude()));
         scooter.setBatteryLevel(request.getBatteryLevel());
         scooter.setAvailable(true);
         return scooterRepository.save(scooter);
+    }
+
+    private Point createPoint(double lat, double lon) {
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        return geometryFactory.createPoint(new Coordinate(lon, lat));
     }
 }

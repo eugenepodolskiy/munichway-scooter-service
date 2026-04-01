@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +45,10 @@ public class ScooterController {
     }
 
     @GetMapping("/available")
-    public List<Scooter> getAvailableScooters() {
-        return scooterService.getAvailableScooters();
+    public ResponseEntity<List<Scooter>> getAvailableScootersNear(
+            @RequestParam double lat,
+            @RequestParam double lon) {
+        return ResponseEntity.ok(scooterService.getAvailableScootersNear(lat, lon));
     }
 
     @PostMapping("/create")

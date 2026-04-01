@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.locationtech.jts.geom.Point;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "scooters")
@@ -31,8 +33,9 @@ public class Scooter {
     @Column(name = "available", nullable = false)
     private boolean available;
 
-    @NotBlank(message = "Location is required")
-    private String location;
+    @JsonIgnore
+    @Column(columnDefinition = "geometry(Point,4326)")
+    private Point location;
 
     @Column(nullable = false)
     private boolean deleted = false;
@@ -40,4 +43,11 @@ public class Scooter {
     public Scooter() {
     }
 
+    public Double getLatitude() {
+        return location != null ? location.getY() : null;
+    }
+
+    public Double getLongitude() {
+        return location != null ? location.getX() : null;
+    }
 }

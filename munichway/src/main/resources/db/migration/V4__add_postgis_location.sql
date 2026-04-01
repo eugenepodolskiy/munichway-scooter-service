@@ -1,0 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+ALTER TABLE scooters DROP COLUMN location;
+
+ALTER TABLE scooters ADD COLUMN location GEOMETRY(Point, 4326);
