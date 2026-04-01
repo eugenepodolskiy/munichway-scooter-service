@@ -5,7 +5,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL,
     balance DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-    deleted BOOLEAN NOT NULL DEFAULT FALSE -- Добавлена недостающая колонка
+    deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE scooters (

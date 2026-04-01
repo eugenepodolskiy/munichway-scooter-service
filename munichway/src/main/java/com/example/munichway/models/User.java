@@ -45,7 +45,7 @@ public class User implements UserDetails{
 
     @Enumerated(jakarta.persistence.EnumType.STRING)
     @Column(nullable = false)
-    private com.example.munichway.enums.Role role = com.example.munichway.enums.Role.USER;
+    private com.example.munichway.enums.Role role = com.example.munichway.enums.Role.ROLE_USER;
 
     public User(){
     }

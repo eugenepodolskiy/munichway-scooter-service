@@ -4,15 +4,16 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
+@Table(name = "scooters")
+@SQLDelete(sql = "UPDATE scooters SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 @Getter
 @Setter
-@Table(name = "scooters")
 public class Scooter {
 
     @Id
@@ -32,6 +33,9 @@ public class Scooter {
 
     @NotBlank(message = "Location is required")
     private String location;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public Scooter() {
     }

@@ -26,7 +26,7 @@ public class AuthenticationService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(com.example.munichway.enums.Role.USER);
+        user.setRole(com.example.munichway.enums.Role.ROLE_USER);
 
         userRepository.save(user);
 
