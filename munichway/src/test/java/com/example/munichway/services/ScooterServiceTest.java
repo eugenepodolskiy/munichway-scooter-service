@@ -2,6 +2,7 @@ package com.example.munichway.services;
 
 import com.example.munichway.exceptions.InsufficientFundsException;
 import com.example.munichway.models.Scooter;
+import com.example.munichway.models.Trip;
 import com.example.munichway.models.User;
 import com.example.munichway.repositories.ScooterRepository;
 import com.example.munichway.repositories.TripRepository;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,4 +92,35 @@ class ScooterServiceTest {
         );
         verify(tripRepository, never()).save(any());
     }
+
+    @Test
+    void returnScooter_Success(){
+        testScooter.setAvailable(false);
+        Trip activeTrip = new Trip();
+        activeTrip.setId(1L);
+        activeTrip.setUser(testUser);
+        activeTrip.setScooter(testScooter);
+        activeTrip.setStartTime(LocalDateTime.now().minusMinutes(10));
+
+        com.example.munichway.DTO.ReturnRequest request = new com.example.munichway.DTO.ReturnRequest();
+        request.setNewLocation("Odeonsplatz");
+        request.setNewBatteryLevel(80);
+
+        when(scooterRepository.findById(1L)).thenReturn(Optional.of(testScooter));
+        when(tripRepository.findByScooterIdAndEndTimeIsNull(1L)).thenReturn(Optional.of(activeTrip));
+        when(scooterRepository.save(any(Scooter.class))).thenReturn(testScooter);
+
+        Scooter result = scooterService.returnScooter(1L, request, "test@munichway.com");
+
+        assertTrue(result.isAvailable());
+        assertEquals("Odeonsplatz", result.getLocation());
+        assertEquals(80, result.getBatteryLevel());
+
+        assertNotNull(activeTrip.getEndTime());
+        assertEquals(2.0, activeTrip.getTotalCost());
+
+        verify(tripRepository, times(1)).save(activeTrip);
+        verify(userRepository, never()).save(any());
+    }
+
 }
