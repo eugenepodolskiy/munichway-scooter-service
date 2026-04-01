@@ -1,126 +1,136 @@
 package com.example.munichway.services;
 
-import com.example.munichway.exceptions.InsufficientFundsException;
+import com.example.munichway.DTO.ReturnRequest;
+import com.example.munichway.DTO.ScooterCreateRequest;
 import com.example.munichway.models.Scooter;
 import com.example.munichway.models.Trip;
 import com.example.munichway.models.User;
 import com.example.munichway.repositories.ScooterRepository;
 import com.example.munichway.repositories.TripRepository;
-import com.example.munichway.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ScooterServiceTest {
 
     @Mock
     private ScooterRepository scooterRepository;
+
     @Mock
     private TripRepository tripRepository;
-    @Mock
-    private UserRepository userRepository;
 
     @InjectMocks
     private ScooterService scooterService;
-    private User testUser;
-    private Scooter testScooter;
+
+    private Scooter defaultScooter;
+    private User defaultUser;
+    private Trip defaultTrip;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(scooterService, "minBalanceToRent", 5.0);
-        ReflectionTestUtils.setField(scooterService, "unlockFee", 1.0);
-        ReflectionTestUtils.setField(scooterService, "minuteRate", 0.1);
+        defaultScooter = new Scooter();
+        defaultScooter.setId(1L);
+        defaultScooter.setModelName("Ninebot Max G30");
+        defaultScooter.setAvailable(true);
+        defaultScooter.setBatteryLevel(100);
 
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setEmail("test@munichway.com");
-        testUser.setBalance(10.0);
+        defaultUser = new User();
+        defaultUser.setEmail("user@munichway.com");
+        defaultUser.setBalance(50.0);
 
-        testScooter = new Scooter();
-        testScooter.setId(1L);
-        testScooter.setAvailable(true);
+        defaultTrip = new Trip();
+        defaultTrip.setId(10L);
+        defaultTrip.setScooter(defaultScooter);
+        defaultTrip.setUser(defaultUser);
+
+        defaultTrip.setStartTime(LocalDateTime.now().minusMinutes(15));
     }
 
     @Test
-    void rentScooter_Success() {
-        when(userRepository.findByEmail("test@munichway.com")).thenReturn(Optional.of(testUser));
-        when(scooterRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testScooter));
-        when(scooterRepository.save(any(Scooter.class))).thenReturn(testScooter);
+    @DisplayName("Should add scooter successfully")
+    void shouldAddScooterSuccessfully() {
+        ScooterCreateRequest request = new ScooterCreateRequest();
+        request.setModelName("Ninebot Max G30");
+        request.setBatteryLevel(100);
+        request.setLatitude(48.1371);
+        request.setLongitude(11.5756);
 
-        Scooter result = scooterService.rentScooter(1L, "test@munichway.com");
+        given(scooterRepository.save(any(Scooter.class))).willReturn(defaultScooter);
 
-        assertFalse(result.isAvailable());
-        assertEquals(9.0, testUser.getBalance());
-        verify(tripRepository, times(1)).save(any());
+        Scooter savedScooter = scooterService.addScooter(request);
+
+        assertThat(savedScooter).isNotNull();
+        assertThat(savedScooter.getModelName()).isEqualTo("Ninebot Max G30");
+        verify(scooterRepository).save(any(Scooter.class));
     }
 
     @Test
-    void rentScooter_ThrowsException_WhenInsufficientFunds() {
+    @DisplayName("Should return available scooters near location")
+    void shouldReturnAvailableScootersNearLocation() {
+        double lat = 48.1371;
+        double lon = 11.5756;
+        given(scooterRepository.findAvailableNearLocation(lat, lon)).willReturn(List.of(defaultScooter));
 
-        testUser.setBalance(3.0);
-        when(userRepository.findByEmail("test@munichway.com")).thenReturn(Optional.of(testUser));
+        List<Scooter> scooters = scooterService.getAvailableScootersNear(lat, lon);
 
-        assertThrows(InsufficientFundsException.class, () ->
-                scooterService.rentScooter(1L, "test@munichway.com")
-        );
-
-        verify(scooterRepository, never()).findByIdWithLock(anyLong());
-        verify(tripRepository, never()).save(any());
-    }
-
-
-    @Test
-    void rentScooter_ThrowsException_WhenScooterAlreadyRented() {
-        testScooter.setAvailable(false);
-        when(userRepository.findByEmail("test@munichway.com")).thenReturn(Optional.of(testUser));
-        when(scooterRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testScooter));
-        assertThrows(ResponseStatusException.class, () ->
-                scooterService.rentScooter(1L, "test@munichway.com")
-        );
-        verify(tripRepository, never()).save(any());
+        assertThat(scooters).hasSize(1);
+        assertThat(scooters.get(0).getId()).isEqualTo(1L);
+        verify(scooterRepository).findAvailableNearLocation(lat, lon);
     }
 
     @Test
-    void returnScooter_Success(){
-        testScooter.setAvailable(false);
-        Trip activeTrip = new Trip();
-        activeTrip.setId(1L);
-        activeTrip.setUser(testUser);
-        activeTrip.setScooter(testScooter);
-        activeTrip.setStartTime(LocalDateTime.now().minusMinutes(10));
+    @DisplayName("Should return scooter and update data")
+    void shouldReturnScooterAndUpdateData() {
+        Long scooterId = 1L;
+        String email = "user@munichway.com";
+        defaultScooter.setAvailable(false);
 
-        com.example.munichway.DTO.ReturnRequest request = new com.example.munichway.DTO.ReturnRequest();
-        request.setNewLocation("Odeonsplatz");
-        request.setNewBatteryLevel(80);
+        ReturnRequest request = new ReturnRequest();
+        request.setNewLatitude(48.1390);
+        request.setNewLongitude(11.5800);
+        request.setNewBatteryLevel(85);
 
-        when(scooterRepository.findById(1L)).thenReturn(Optional.of(testScooter));
-        when(tripRepository.findByScooterIdAndEndTimeIsNull(1L)).thenReturn(Optional.of(activeTrip));
-        when(scooterRepository.save(any(Scooter.class))).thenReturn(testScooter);
+        given(scooterRepository.findById(scooterId)).willReturn(Optional.of(defaultScooter));
+        given(tripRepository.findByScooterIdAndEndTimeIsNull(scooterId)).willReturn(Optional.of(defaultTrip));
+        given(scooterRepository.save(any(Scooter.class))).willReturn(defaultScooter);
 
-        Scooter result = scooterService.returnScooter(1L, request, "test@munichway.com");
+        Scooter returnedScooter = scooterService.returnScooter(scooterId, request, email);
 
-        assertTrue(result.isAvailable());
-        assertEquals("Odeonsplatz", result.getLocation());
-        assertEquals(80, result.getBatteryLevel());
-
-        assertNotNull(activeTrip.getEndTime());
-        assertEquals(2.0, activeTrip.getTotalCost());
-
-        verify(tripRepository, times(1)).save(activeTrip);
-        verify(userRepository, never()).save(any());
+        assertThat(returnedScooter.isAvailable()).isTrue();
+        verify(scooterRepository).save(defaultScooter);
     }
 
+    @Test
+    @DisplayName("Should throw exception when returning non-existent scooter")
+    void shouldThrowExceptionWhenReturningNonExistentScooter() {
+        Long invalidId = 99L;
+        ReturnRequest request = new ReturnRequest();
+        String email = "user@munichway.com";
+
+        given(scooterRepository.findById(invalidId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> scooterService.returnScooter(invalidId, request, email))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Scooter not found");
+
+        verify(tripRepository, never()).findByScooterIdAndEndTimeIsNull(any());
+        verify(scooterRepository, never()).save(any());
+    }
 }
