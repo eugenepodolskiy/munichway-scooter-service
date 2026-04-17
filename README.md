@@ -6,7 +6,7 @@ This is a personal learning project created to both solidify my foundational kno
 The project provides a backend system for an electric scooter rental service in Munich. It enables real-time search for available scooters within a specific geographic radius. The system securely handles the entire lifecycle of a scooter trip: from checking user balances and locking the scooter to calculating the final trip cost based on time and updating the scooter's GPS coordinates upon return.
 
 ## Technologies Used
-Java 25.0.2
+Java 23
 
 Spring Boot 4.0.2 (Embedded Tomcat 11.0.15)
 
